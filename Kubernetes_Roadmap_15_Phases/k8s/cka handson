@@ -1,0 +1,318 @@
+# Module 32: CKA Hands-On Labs
+
+## Lab 1: Pod Creation
+
+Create Pod:
+
+```bash
+kubectl run nginx \
+--image=nginx
+```
+
+Verify:
+
+```bash
+kubectl get pods
+```
+
+---
+
+## Lab 2: Generate YAML Quickly
+
+```bash
+kubectl run nginx \
+--image=nginx \
+--dry-run=client \
+-o yaml > pod.yaml
+```
+
+Edit.
+
+Apply:
+
+```bash
+kubectl apply -f pod.yaml
+```
+
+---
+
+## Lab 3: Deployment Scaling
+
+Create:
+
+```bash
+kubectl create deployment web \
+--image=nginx
+```
+
+Scale:
+
+```bash
+kubectl scale deployment web \
+--replicas=5
+```
+
+Verify:
+
+```bash
+kubectl get deploy
+```
+
+---
+
+## Lab 4: Service Troubleshooting
+
+Deploy App.
+
+Create Service.
+
+Break Selector intentionally.
+
+Observe:
+
+```text
+No Endpoints
+```
+
+Troubleshoot:
+
+```bash
+kubectl get endpoints
+kubectl get svc
+kubectl get pods --show-labels
+```
+
+---
+
+## Lab 5: DNS Debugging
+
+Create BusyBox:
+
+```bash
+kubectl run test \
+--image=busybox \
+-it
+```
+
+Inside:
+
+```bash
+nslookup kubernetes.default
+```
+
+Expected:
+
+```text
+DNS Resolution Works
+```
+
+---
+
+## Lab 6: PVC Debugging
+
+Create PVC.
+
+Intentionally request:
+
+```text
+100TB Storage
+```
+
+Observe:
+
+```text
+Pending
+```
+
+Troubleshoot:
+
+```bash
+kubectl describe pvc
+```
+
+---
+
+## Lab 7: Node Troubleshooting
+
+View:
+
+```bash
+kubectl get nodes
+```
+
+Describe:
+
+```bash
+kubectl describe node node-name
+```
+
+Check:
+
+```text
+Conditions
+Events
+Resources
+```
+
+---
+
+## Lab 8: CrashLoopBackOff
+
+Create Bad Pod:
+
+```yaml
+command:
+- false
+```
+
+Observe:
+
+```text
+CrashLoopBackOff
+```
+
+Troubleshoot:
+
+```bash
+kubectl logs
+kubectl describe pod
+```
+
+---
+
+## Lab 9: ConfigMap Injection
+
+Create ConfigMap:
+
+```bash
+kubectl create configmap app-config \
+--from-literal=ENV=dev
+```
+
+Inject into Pod.
+
+Verify:
+
+```bash
+env
+```
+
+---
+
+## Lab 10: RBAC Troubleshooting
+
+Create:
+
+```text
+ServiceAccount
+Role
+RoleBinding
+```
+
+Check:
+
+```bash
+kubectl auth can-i get pods
+```
+
+Fix permissions.
+
+---
+
+## Lab 11: Ingress Troubleshooting
+
+Deploy:
+
+```text
+Ingress
+Service
+Pod
+```
+
+Break configuration.
+
+Use:
+
+```bash
+kubectl describe ingress
+kubectl get svc
+kubectl get endpoints
+```
+
+Identify issue.
+
+---
+
+## Lab 12: Full Mock Exam
+
+Complete within:
+
+```text
+2 Hours
+```
+
+Tasks:
+
+✅ Create Namespace
+
+✅ Create Deployment
+
+✅ Scale Deployment
+
+✅ Create Service
+
+✅ Create ConfigMap
+
+✅ Create Secret
+
+✅ Create PVC
+
+✅ Mount PVC
+
+✅ Expose Ingress
+
+✅ Create Network Policy
+
+✅ Troubleshoot Failed Pod
+
+✅ Troubleshoot Service
+
+✅ Verify DNS
+
+✅ Verify Storage
+
+---
+
+# CKA Exam Readiness Scorecard
+
+You are exam-ready if you can complete without notes:
+
+✅ Pod Creation
+
+✅ Deployments
+
+✅ Scaling
+
+✅ Services
+
+✅ Networking
+
+✅ DNS
+
+✅ PV/PVC
+
+✅ ConfigMaps
+
+✅ Secrets
+
+✅ Ingress
+
+✅ RBAC
+
+✅ Troubleshooting
+
+✅ Node Diagnostics
+
+✅ Logs Analysis
+
+✅ Resource Debugging

@@ -1,0 +1,765 @@
+# Docker & Containers Prerequisite for Kubernetes
+
+> Based on the Kubernetes learning approach recommended by TechWorld with Nana.
+>
+> Goal: Build a solid foundation in Docker and Containers before learning Kubernetes.
+
+---
+
+# Phase 1: Understand Why Containers Exist
+
+## Problem with Traditional Deployment
+
+Imagine a Java application:
+
+```text
+Application
+├── Java 17
+├── Maven
+├── Spring Boot
+└── Linux Dependencies
+```
+
+### Problems
+
+- Works on your laptop
+- Fails on QA server
+- Different Java versions
+- Different OS libraries
+
+Example:
+
+```bash
+Error:
+Java version mismatch
+```
+
+### Solution: Containers
+
+A container packages everything the application needs.
+
+```text
+Container
+├── Application
+├── Java Runtime
+├── Libraries
+└── Configurations
+```
+
+Benefits:
+
+- Consistent deployment
+- Portable across environments
+- Faster startup
+- Better resource utilization
+
+---
+
+# Phase 2: Install Docker
+
+## Ubuntu Installation
+
+```bash
+sudo apt update
+sudo apt install docker.io -y
+
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+Verify installation:
+
+```bash
+docker --version
+```
+
+Expected output:
+
+```bash
+Docker version 26.x
+```
+
+---
+
+# Phase 3: Run Your First Container
+
+Run Nginx:
+
+```bash
+docker run nginx
+```
+
+Nginx starts but occupies the terminal.
+
+Run in detached mode:
+
+```bash
+docker run -d nginx
+```
+
+Check running containers:
+
+```bash
+docker ps
+```
+
+Example:
+
+```bash
+CONTAINER ID   IMAGE
+1234abcd       nginx
+```
+
+---
+
+# Phase 4: Understand Docker Architecture
+
+```text
+Docker Client
+      |
+      v
+Docker Daemon
+      |
+      +--> Images
+      +--> Containers
+      +--> Networks
+      +--> Volumes
+```
+
+## Components
+
+### Docker Client
+
+Commands you type:
+
+```bash
+docker run
+docker build
+docker ps
+```
+
+### Docker Daemon
+
+Performs all container operations.
+
+### Docker Registry
+
+Stores images.
+
+Examples:
+
+- Docker Hub
+- AWS ECR
+- Azure ACR
+- Google Artifact Registry
+
+---
+
+# Phase 5: Images vs Containers
+
+## Image
+
+Blueprint/template used to create containers.
+
+Examples:
+
+```text
+nginx
+ubuntu
+mysql
+redis
+```
+
+## Container
+
+Running instance of an image.
+
+Example:
+
+```text
+Image
+ └── nginx
+
+Containers
+ ├── nginx-container-1
+ └── nginx-container-2
+```
+
+Analogy:
+
+```text
+Class → Object
+
+Image → Container
+```
+
+---
+
+# Phase 6: Pull Images
+
+Download image:
+
+```bash
+docker pull nginx
+```
+
+List downloaded images:
+
+```bash
+docker images
+```
+
+Example:
+
+```bash
+REPOSITORY   TAG
+
+nginx        latest
+ubuntu       latest
+```
+
+Remove image:
+
+```bash
+docker rmi nginx
+```
+
+---
+
+# Phase 7: Container Lifecycle
+
+Create container:
+
+```bash
+docker create nginx
+```
+
+Start container:
+
+```bash
+docker start <container_id>
+```
+
+Stop container:
+
+```bash
+docker stop <container_id>
+```
+
+Restart container:
+
+```bash
+docker restart <container_id>
+```
+
+Delete container:
+
+```bash
+docker rm <container_id>
+```
+
+## Practice
+
+```bash
+docker run -d nginx
+
+docker ps
+
+docker stop container_id
+
+docker start container_id
+
+docker rm -f container_id
+```
+
+---
+
+# Phase 8: Port Mapping
+
+Containers have isolated networking.
+
+Nginx listens on:
+
+```text
+Port 80
+```
+
+Expose it to the host machine:
+
+```bash
+docker run -d -p 8080:80 nginx
+```
+
+Meaning:
+
+```text
+Host Port      Container Port
+8080      ->   80
+```
+
+Visit:
+
+```text
+http://localhost:8080
+```
+
+### Kubernetes Mapping
+
+```text
+Docker Port Mapping
+        ↓
+Kubernetes Service
+```
+
+---
+
+# Phase 9: Inspect Container
+
+Open shell:
+
+```bash
+docker exec -it container_id bash
+```
+
+Explore container:
+
+```bash
+ls
+```
+
+Check processes:
+
+```bash
+ps aux
+```
+
+Check environment variables:
+
+```bash
+env
+```
+
+Exit:
+
+```bash
+exit
+```
+
+Useful logs command:
+
+```bash
+docker logs container_id
+```
+
+Follow logs:
+
+```bash
+docker logs -f container_id
+```
+
+---
+
+# Phase 10: Build Your Own Image
+
+Project Structure:
+
+```text
+my-app
+├── app.py
+└── Dockerfile
+```
+
+## app.py
+
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Hello Docker"
+
+app.run(host="0.0.0.0")
+```
+
+---
+
+## Dockerfile
+
+```dockerfile
+FROM python:3.11
+
+WORKDIR /app
+
+COPY . .
+
+RUN pip install flask
+
+CMD ["python","app.py"]
+```
+
+Build image:
+
+```bash
+docker build -t my-python-app .
+```
+
+Verify image:
+
+```bash
+docker images
+```
+
+Run image:
+
+```bash
+docker run -p 5000:5000 my-python-app
+```
+
+Test:
+
+```text
+http://localhost:5000
+```
+
+Expected:
+
+```text
+Hello Docker
+```
+
+---
+
+# Phase 11: Docker Volumes
+
+## Problem
+
+Container data is lost when the container is removed.
+
+Example:
+
+```bash
+docker rm mysql
+```
+
+All database data disappears.
+
+---
+
+## Create Volume
+
+```bash
+docker volume create mysql-data
+```
+
+View volumes:
+
+```bash
+docker volume ls
+```
+
+Run MySQL using volume:
+
+```bash
+docker run -d \
+-v mysql-data:/var/lib/mysql \
+mysql
+```
+
+Now the data survives container deletion.
+
+### Kubernetes Mapping
+
+```text
+Docker Volume
+        ↓
+Persistent Volume (PV)
+Persistent Volume Claim (PVC)
+```
+
+---
+
+# Phase 12: Docker Networking
+
+Create network:
+
+```bash
+docker network create my-network
+```
+
+Check networks:
+
+```bash
+docker network ls
+```
+
+Run MySQL:
+
+```bash
+docker run -d \
+--network my-network \
+--name mysql \
+mysql
+```
+
+Run backend:
+
+```bash
+docker run -d \
+--network my-network \
+--name backend \
+backend-app
+```
+
+Backend connects to MySQL using:
+
+```text
+mysql:3306
+```
+
+Docker automatically creates DNS records.
+
+### Kubernetes Mapping
+
+```text
+Docker Network
+        ↓
+Kubernetes Networking
+        ↓
+Services + DNS
+```
+
+---
+
+# Phase 13: Environment Variables
+
+Run:
+
+```bash
+docker run \
+-e DB_HOST=mysql \
+-e DB_USER=root \
+my-app
+```
+
+Check variables inside container:
+
+```bash
+env
+```
+
+### Kubernetes Mapping
+
+```text
+Environment Variables
+        ↓
+ConfigMaps
+Secrets
+```
+
+---
+
+# Phase 14: Docker Compose
+
+Managing multiple containers individually is difficult.
+
+Example Application:
+
+```text
+Frontend
+Backend
+MySQL
+Redis
+```
+
+Create:
+
+```yaml
+services:
+
+  frontend:
+    image: nginx
+
+  backend:
+    image: my-api
+
+  mysql:
+    image: mysql
+
+  redis:
+    image: redis
+```
+
+Start everything:
+
+```bash
+docker compose up -d
+```
+
+View containers:
+
+```bash
+docker ps
+```
+
+Stop everything:
+
+```bash
+docker compose down
+```
+
+### Kubernetes Mapping
+
+| Docker Compose | Kubernetes |
+| -------------- | ---------- |
+| Service | Service |
+| Container | Pod |
+| Volume | PV/PVC |
+| Environment Variables | ConfigMap/Secret |
+| Compose File | YAML Manifest |
+
+---
+
+# Phase 15: Docker Registry
+
+## Login
+
+```bash
+docker login
+```
+
+---
+
+## Tag Image
+
+```bash
+docker tag my-app username/my-app:v1
+```
+
+---
+
+## Push Image
+
+```bash
+docker push username/my-app:v1
+```
+
+---
+
+## Pull Image
+
+```bash
+docker pull username/my-app:v1
+```
+
+---
+
+### Kubernetes Uses Registries
+
+Example:
+
+```yaml
+containers:
+  - name: my-app
+    image: username/my-app:v1
+```
+
+Kubernetes pulls images from registries automatically.
+
+---
+
+# Mini Project Before Kubernetes
+
+Build:
+
+```text
+Frontend
+Backend
+MySQL
+```
+
+Requirements:
+
+✅ Create Dockerfile for Frontend
+
+✅ Create Dockerfile for Backend
+
+✅ Create Docker Network
+
+✅ Create Docker Volume
+
+✅ Configure MySQL
+
+✅ Create Docker Compose File
+
+✅ Push Images to Docker Hub
+
+---
+
+# Commands You Must Know
+
+```bash
+docker pull
+docker images
+docker run
+docker ps
+docker logs
+docker exec
+docker stop
+docker rm
+docker network ls
+docker volume ls
+docker build
+docker push
+docker compose up
+docker compose down
+```
+
+---
+
+# Kubernetes Readiness Checklist
+
+You are ready for Kubernetes if you can answer:
+
+1. What is a container?
+2. Difference between image and container?
+3. How does port mapping work?
+4. How do containers communicate?
+5. Why do we need volumes?
+6. How do you build an image?
+7. How do you push an image to a registry?
+8. How does Docker Compose manage services?
+
+---
+
+# Concept Mapping: Docker → Kubernetes
+
+| Docker Concept | Kubernetes Equivalent |
+|---------------|----------------------|
+| Container | Pod |
+| Image | Container Image |
+| Port Mapping | Service |
+| Volume | PV / PVC |
+| Environment Variable | ConfigMap / Secret |
+| Docker Network | Cluster Network |
+| Docker Compose | Kubernetes Manifests |
+| Registry | Container Registry |
+| Docker Host | Kubernetes Node |
+
+---
+
+# Next Step
+
+After completing all practical exercises in this document, start learning:
+
+- Kubernetes Architecture
+- Nodes
+- Pods
+- Deployments
+- Services
+- ConfigMaps
+- Secrets
+- Ingress
+
+These concepts will be much easier to understand because they directly build on Docker fundamentals.

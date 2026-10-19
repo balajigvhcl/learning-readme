@@ -1,0 +1,757 @@
+# Docker & Containers Prerequisite for Kubernetes
+
+## Learning Goal
+
+Before learning Kubernetes, you must understand containers.
+
+Kubernetes does not run applications directly.
+
+Kubernetes manages containers.
+
+Therefore Docker and container fundamentals are mandatory.
+
+---
+
+# Learning Outcomes
+
+After completing this phase, you should be able to:
+
+✅ Explain Containers
+
+✅ Explain Docker Architecture
+
+✅ Build Docker Images
+
+✅ Run Containers
+
+✅ Create Docker Networks
+
+✅ Create Docker Volumes
+
+✅ Build Multi-Container Applications
+
+✅ Use Docker Compose
+
+✅ Push Images to Docker Hub
+
+✅ Troubleshoot Containers
+
+---
+
+# Module 1: Why Containers Exist
+
+---
+
+## Traditional Deployment Problem
+
+Imagine deploying a Java application.
+
+Application Requirements:
+
+```text
+Java 17
+Spring Boot
+Maven
+Linux Dependencies
+```
+
+Developer machine:
+
+```text
+Ubuntu
+Java 17
+```
+
+Server:
+
+```text
+CentOS
+Java 11
+```
+
+Application fails.
+
+Typical Error:
+
+```bash
+UnsupportedClassVersionError
+```
+
+This problem is known as:
+
+```text
+Works on My Machine
+```
+
+---
+
+## Virtual Machines
+
+Traditional solution:
+
+```text
+Hypervisor
+├── VM-1
+├── VM-2
+└── VM-3
+```
+
+Each VM contains:
+
+```text
+Guest OS
+Libraries
+Applications
+```
+
+Problems:
+
+- Heavyweight
+- Slow startup
+- High resource consumption
+
+---
+
+## Containers
+
+Container packages:
+
+```text
+Application
+Runtime
+Libraries
+Dependencies
+```
+
+Container shares kernel with host.
+
+Benefits:
+
+- Lightweight
+- Fast startup
+- Portable
+- Consistent
+
+---
+
+# Module 2: Container Architecture
+
+Container Runtime:
+
+Examples:
+
+```text
+Docker
+containerd
+CRI-O
+Podman
+```
+
+Kubernetes mainly uses:
+
+```text
+containerd
+CRI-O
+```
+
+Docker remains best for learning containers.
+
+---
+
+# Module 3: Docker Architecture
+
+```text
+Docker Client
+      |
+      |
+      V
+Docker Daemon
+      |
+      +--> Images
+      +--> Containers
+      +--> Networks
+      +--> Volumes
+```
+
+Components:
+
+### Docker CLI
+
+```bash
+docker
+```
+
+### Docker Daemon
+
+```text
+dockerd
+```
+
+Handles:
+
+- Build
+- Run
+- Delete
+- Network
+- Storage
+
+### Registry
+
+Stores images.
+
+Examples:
+
+- Docker Hub
+- AWS ECR
+- Azure ACR
+- Google Artifact Registry
+
+---
+
+# Module 4: Install Docker
+
+## Ubuntu
+
+```bash
+sudo apt update
+
+sudo apt install docker.io -y
+
+sudo systemctl start docker
+
+sudo systemctl enable docker
+```
+
+Verify:
+
+```bash
+docker --version
+```
+
+---
+
+## Run Without Sudo
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+Logout and login.
+
+Verify:
+
+```bash
+docker ps
+```
+
+---
+
+# Module 5: Docker Images
+
+Image = Blueprint
+
+Examples:
+
+```text
+nginx
+redis
+mysql
+ubuntu
+```
+
+View images:
+
+```bash
+docker images
+```
+
+Pull image:
+
+```bash
+docker pull nginx
+```
+
+Remove:
+
+```bash
+docker rmi nginx
+```
+
+---
+
+# Module 6: Docker Containers
+
+Container = Running instance of image.
+
+Run:
+
+```bash
+docker run nginx
+```
+
+Detached mode:
+
+```bash
+docker run -d nginx
+```
+
+List:
+
+```bash
+docker ps
+```
+
+All containers:
+
+```bash
+docker ps -a
+```
+
+Stop:
+
+```bash
+docker stop container_id
+```
+
+Delete:
+
+```bash
+docker rm container_id
+```
+
+---
+
+# Module 7: Container Life Cycle
+
+```text
+Created
+ ↓
+Running
+ ↓
+Paused
+ ↓
+Stopped
+ ↓
+Deleted
+```
+
+Commands:
+
+```bash
+docker create nginx
+
+docker start id
+
+docker stop id
+
+docker rm id
+```
+
+Lab:
+
+Create container.
+
+Stop container.
+
+Restart container.
+
+Delete container.
+
+---
+
+# Module 8: Port Mapping
+
+Problem:
+
+Nginx runs inside container.
+
+Container Port:
+
+```text
+80
+```
+
+Host cannot access it.
+
+Map ports:
+
+```bash
+docker run -p 8080:80 nginx
+```
+
+Meaning:
+
+```text
+Host      Container
+
+8080 ---> 80
+```
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+---
+
+# Module 9: Environment Variables
+
+Run:
+
+```bash
+docker run \
+-e APP_ENV=dev \
+nginx
+```
+
+Check:
+
+```bash
+docker exec -it id env
+```
+
+Important because Kubernetes ConfigMaps later work similarly.
+
+---
+
+# Module 10: Container Inspection
+
+Shell access:
+
+```bash
+docker exec -it id bash
+```
+
+Logs:
+
+```bash
+docker logs id
+```
+
+Live logs:
+
+```bash
+docker logs -f id
+```
+
+Inspect:
+
+```bash
+docker inspect id
+```
+
+Practice all commands.
+
+---
+
+# Module 11: Build Docker Images
+
+Application:
+
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def hello():
+    return "Hello Docker"
+
+app.run(host="0.0.0.0")
+```
+
+---
+
+## Dockerfile
+
+```dockerfile
+FROM python:3.11
+
+WORKDIR /app
+
+COPY . .
+
+RUN pip install flask
+
+CMD ["python","app.py"]
+```
+
+Build:
+
+```bash
+docker build -t myapp:v1 .
+```
+
+Run:
+
+```bash
+docker run -p 5000:5000 myapp:v1
+```
+
+---
+
+# Module 12: Docker Volumes
+
+Problem:
+
+Containers are temporary.
+
+Delete container:
+
+```bash
+docker rm mysql
+```
+
+Data disappears.
+
+---
+
+Create Volume
+
+```bash
+docker volume create mysql-data
+```
+
+List Volumes:
+
+```bash
+docker volume ls
+```
+
+Run database:
+
+```bash
+docker run -d \
+-v mysql-data:/var/lib/mysql \
+mysql
+```
+
+Data survives container deletion.
+
+---
+
+# Module 13: Docker Networks
+
+Create network:
+
+```bash
+docker network create app-net
+```
+
+List:
+
+```bash
+docker network ls
+```
+
+Run mysql:
+
+```bash
+docker run -d \
+--network app-net \
+--name mysql \
+mysql
+```
+
+Run backend:
+
+```bash
+docker run -d \
+--network app-net \
+--name backend \
+backend
+```
+
+Connect:
+
+```text
+mysql:3306
+```
+
+Container names become DNS records.
+
+---
+
+# Module 14: Docker Compose
+
+Real applications contain:
+
+```text
+Frontend
+Backend
+Database
+Cache
+```
+
+Managing manually is difficult.
+
+Docker Compose Example:
+
+```yaml
+services:
+
+  frontend:
+    image: nginx
+
+  backend:
+    image: mybackend
+
+  mysql:
+    image: mysql
+
+  redis:
+    image: redis
+```
+
+Run:
+
+```bash
+docker compose up -d
+```
+
+Stop:
+
+```bash
+docker compose down
+```
+
+View:
+
+```bash
+docker compose ps
+```
+
+---
+
+# Module 15: Docker Registry
+
+Login:
+
+```bash
+docker login
+```
+
+Tag:
+
+```bash
+docker tag myapp user/myapp:v1
+```
+
+Push:
+
+```bash
+docker push user/myapp:v1
+```
+
+Pull:
+
+```bash
+docker pull user/myapp:v1
+```
+
+Kubernetes later pulls from registries.
+
+---
+
+# Mini Project
+
+Build:
+
+```text
+Frontend
+Backend
+MySQL
+Redis
+```
+
+Requirements:
+
+✅ Dockerfile
+
+✅ Compose file
+
+✅ Network
+
+✅ Volume
+
+✅ Environment variables
+
+✅ Docker Hub push
+
+---
+
+# Troubleshooting Guide
+
+Container exits immediately:
+
+```bash
+docker logs container_id
+```
+
+Port busy:
+
+```bash
+sudo lsof -i :8080
+```
+
+Image build failure:
+
+```bash
+docker build --no-cache .
+```
+
+Volume problems:
+
+```bash
+docker volume inspect volume_name
+```
+
+---
+
+# Interview Questions
+
+1. Difference between VM and Container?
+2. What is Docker Image?
+3. What is Docker Container?
+4. Explain Docker Daemon.
+5. Explain Docker Registry.
+6. What is Port Mapping?
+7. What is Docker Volume?
+8. What is Docker Network?
+9. What is Docker Compose?
+10. Explain Dockerfile.
+
+---
+
+# Kubernetes Mapping
+
+| Docker | Kubernetes |
+|----------|------------|
+| Container | Pod |
+| Image | Container Image |
+| Port Mapping | Service |
+| Volume | PV/PVC |
+| Environment Variable | ConfigMap |
+| Secret | Secret |
+| Docker Compose | Kubernetes Manifest |
+| Registry | Image Registry |
+
+---
+
+# Readiness Checklist
+
+You are ready for Kubernetes if:
+
+- [ ] Built custom image
+- [ ] Used Dockerfile
+- [ ] Used Compose
+- [ ] Used Networks
+- [ ] Used Volumes
+- [ ] Debugged containers
+- [ ] Pushed images to Docker Hub
+- [ ] Completed mini project
+
+Congratulations.
+
+You are ready for Kubernetes Fundamentals.

@@ -1,0 +1,365 @@
+# Module 31: Istio Hands-On Lab Series
+
+## Lab 1: Install Istio
+
+### Objective
+
+Install Istio and verify core components.
+
+### Steps
+
+Install Istio:
+
+```bash
+curl -L https://istio.io/downloadIstio | sh -
+```
+
+Move into directory:
+
+```bash
+cd istio*
+```
+
+Install:
+
+```bash
+istioctl install
+```
+
+Verify:
+
+```bash
+kubectl get pods -n istio-system
+```
+
+Expected:
+
+```text
+istiod
+istio-ingressgateway
+```
+
+Running.
+
+---
+
+## Lab 2: Enable Automatic Sidecar Injection
+
+Create Namespace:
+
+```bash
+kubectl create namespace demo
+```
+
+Enable injection:
+
+```bash
+kubectl label namespace demo \
+istio-injection=enabled
+```
+
+Verify:
+
+```bash
+kubectl get ns --show-labels
+```
+
+Expected:
+
+```text
+istio-injection=enabled
+```
+
+---
+
+## Lab 3: Deploy Sample Application
+
+Deploy:
+
+```bash
+kubectl apply \
+-f samples/bookinfo/platform/kube/bookinfo.yaml \
+-n demo
+```
+
+Verify:
+
+```bash
+kubectl get pods -n demo
+```
+
+Expected:
+
+```text
+2/2 Ready
+```
+
+Why?
+
+```text
+Application Container
++
+Envoy Sidecar
+```
+
+---
+
+## Lab 4: Configure Ingress Gateway
+
+Deploy Gateway:
+
+```bash
+kubectl apply \
+-f samples/bookinfo/networking/bookinfo-gateway.yaml \
+-n demo
+```
+
+Verify:
+
+```bash
+kubectl get gateway -n demo
+```
+
+Find IP:
+
+```bash
+kubectl get svc istio-ingressgateway \
+-n istio-system
+```
+
+Access Application.
+
+---
+
+## Lab 5: Traffic Splitting
+
+Goal:
+
+```text
+90% -> v1
+10% -> v2
+```
+
+Apply Destination Rule:
+
+```bash
+kubectl apply \
+-f samples/bookinfo/networking/destination-rule-all.yaml
+```
+
+Create Virtual Service:
+
+```yaml
+apiVersion: networking.istio.io/v1beta1
+
+kind: VirtualService
+
+metadata:
+  name: reviews
+
+spec:
+
+  hosts:
+
+  - reviews
+
+  http:
+
+  - route:
+
+    - destination:
+
+        host: reviews
+
+        subset: v1
+
+      weight: 90
+
+    - destination:
+
+        host: reviews
+
+        subset: v2
+
+      weight: 10
+```
+
+Apply:
+
+```bash
+kubectl apply -f virtualservice.yaml
+```
+
+Test traffic behavior.
+
+---
+
+## Lab 6: Enable mTLS
+
+Create:
+
+```yaml
+apiVersion: security.istio.io/v1beta1
+
+kind: PeerAuthentication
+
+metadata:
+  name: default
+
+spec:
+
+  mtls:
+
+    mode: STRICT
+```
+
+Apply:
+
+```bash
+kubectl apply -f mtls.yaml
+```
+
+Verify:
+
+```bash
+istioctl authn tls-check
+```
+
+Traffic is encrypted.
+
+---
+
+## Lab 7: Circuit Breaking
+
+Create Destination Rule:
+
+```yaml
+apiVersion: networking.istio.io/v1beta1
+
+kind: DestinationRule
+
+metadata:
+  name: reviews
+
+spec:
+
+  host: reviews
+
+  trafficPolicy:
+
+    connectionPool:
+
+      tcp:
+
+        maxConnections: 1
+```
+
+Apply:
+
+```bash
+kubectl apply -f circuit-breaker.yaml
+```
+
+Generate traffic.
+
+Observe behavior.
+
+---
+
+## Lab 8: Observability
+
+### Prometheus
+
+Launch:
+
+```bash
+istioctl dashboard prometheus
+```
+
+### Grafana
+
+Launch:
+
+```bash
+istioctl dashboard grafana
+```
+
+### Kiali
+
+Launch:
+
+```bash
+istioctl dashboard kiali
+```
+
+Observe:
+
+```text
+Traffic Flow
+Dependencies
+Error Rates
+Latency
+```
+
+---
+
+## Lab 9: Distributed Tracing
+
+Launch:
+
+```bash
+istioctl dashboard jaeger
+```
+
+Generate traffic:
+
+```bash
+for i in {1..100}
+do
+curl http://APP_URL/productpage
+done
+```
+
+Trace request path:
+
+```text
+Frontend
+  ↓
+Reviews
+  ↓
+Ratings
+```
+
+---
+
+## Istio Lab Capstone
+
+Build:
+
+```text
+Frontend
+Backend
+Database
+```
+
+Requirements:
+
+✅ Istio Sidecars
+
+✅ Gateway
+
+✅ VirtualService
+
+✅ DestinationRule
+
+✅ Traffic Splitting
+
+✅ mTLS
+
+✅ Monitoring
+
+✅ Tracing
+
+✅ Circuit Breaking
+
+✅ Retry Policy

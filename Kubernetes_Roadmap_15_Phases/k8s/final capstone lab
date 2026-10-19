@@ -1,0 +1,21 @@
+Namespace
+   ↓
+Frontend Deployment
+   ↓
+Backend Deployment
+   ↓
+MySQL StatefulSet
+   ↓
+PVC Storage
+   ↓
+Ingress
+   ↓
+Helm Deployment
+   ↓
+RBAC
+   ↓
+Network Policies
+   ↓
+Istio Service Mesh
+   ↓
+Prometheus + Grafana
